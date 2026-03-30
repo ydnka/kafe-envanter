@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kafe Envanter</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0e0c;
+    --surface: #1a1814;
+    --surface2: #242118;
+    --border: #2e2a22;
+    --accent: #c9a84c;
+    --accent2: #e8c97a;
+    --text: #f0ebe0;
+    --text2: #a09880;
+    --text3: #6b6354;
+    --ok: #4caf82;
+    --warn: #e8a44c;
+    --danger: #e85c4c;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    min-height: 100vh;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      radial-gradient(ellipse at 20% 10%, rgba(201,168,76,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(201,168,76,0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 0 16px; position: relative; z-index: 1; }
+
+  /* Header */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 28px 0 20px;
+    margin-bottom: 32px;
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .sync-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--text3);
+  }
+
+  .sync-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--ok);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Search & Add */
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .search-wrap {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+
+  .search-wrap input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px 10px 38px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap input::placeholder { color: var(--text3); }
+
+  .search-icon {
+    position: absolute;
+    left: 12px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text3);
+    font-size: 15px;
+  }
+
+  .btn {
+    padding: 10px 18px;
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 7px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0f0e0c;
+  }
+
+  .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+
+  .btn-ghost {
+    background: var(--surface);
+    color: var(--text2);
+    border: 1px solid var(--border);
+  }
+
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Category Tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    background: var(--surface);
+    padding: 4px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow-x: auto;
+  }
+
+  .tab {
+    flex: 1;
+    min-width: 100px;
+    padding: 9px 16px;
+    border-radius: 9px;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text3);
+    background: transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .tab.active {
+    background: var(--surface2);
+    color: var(--accent);
+    border: 1px solid var(--border);
+  }
+
+  .tab-emoji { margin-right: 5px; }
+
+  /* Product Grid */
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .product-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+    animation: fadeUp 0.3s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .product-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+  .product-card.status-low { border-color: rgba(232,164,76,0.5); }
+  .product-card.status-out { border-color: rgba(232,92,76,0.5); }
+
+  .card-img {
+    width: 100%;
+    height: 130px;
+    object-fit: cover;
+    display: block;
+    background: var(--surface2);
+  }
+
+  .card-img-placeholder {
+    width: 100%;
+    height: 130px;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .card-img-placeholder:hover { background: var(--border); }
+
+  .card-body { padding: 12px 14px; }
+
+  .card-names {
+    margin-bottom: 10px;
+  }
+
+  .card-name-tr {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .card-name-de {
+    font-size: 0.75rem;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+
+  .card-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .qty-btn {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .qty-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .qty-display {
+    flex: 1;
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .qty-unit {
+    font-size: 0.7rem;
+    color: var(--text3);
+    font-weight: 400;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 500;
+  }
+
+  .status-ok { background: rgba(76,175,130,0.12); color: var(--ok); }
+  .status-low { background: rgba(232,164,76,0.12); color: var(--warn); }
+  .status-out { background: rgba(232,92,76,0.12); color: var(--danger); }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  .note-area {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text3);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.72rem;
+    resize: none;
+    outline: none;
+    height: 32px;
+    line-height: 1.4;
+    cursor: text;
+  }
+
+  .note-area::placeholder { color: var(--text3); opacity: 0.5; }
+
+  .card-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .icon-btn {
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--text3);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    transition: all 0.15s;
+  }
+
+  .icon-btn:hover { background: var(--surface2); color: var(--accent); }
+  .icon-btn.del:hover { color: var(--danger); }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    width: 100%;
+    max-width: 420px;
+    transform: scale(0.95);
+    transition: transform 0.2s;
+  }
+
+  .modal-overlay.open .modal { transform: scale(1); }
+
+  .modal h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: var(--accent);
+  }
+
+  .form-group { margin-bottom: 14px; }
+
+  .form-group label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text3);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus { border-color: var(--accent); }
+
+  .form-group select option { background: var(--surface2); }
+
+  .img-upload-area {
+    width: 100%;
+    height: 100px;
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 6px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    font-size: 0.8rem;
+    color: var(--text3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .img-upload-area:hover { border-color: var(--accent); color: var(--accent); }
+  .img-upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+  .img-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    inset: 0;
+  }
+
+  .modal-btns {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .modal-btns .btn { flex: 1; justify-content: center; }
+
+  .btn-danger {
+    background: rgba(232,92,76,0.15);
+    color: var(--danger);
+    border: 1px solid rgba(232,92,76,0.3);
+  }
+
+  .btn-danger:hover { background: rgba(232,92,76,0.25); }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text3);
+  }
+
+  .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+  .empty p { font-size: 0.9rem; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 0.85rem;
+    color: var(--text);
+    z-index: 200;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+  }
+
+  .stat-num { font-size: 1.1rem; font-weight: 600; color: var(--accent); }
+  .stat-label { color: var(--text3); }
+
+  /* Loading */
+  .loading {
+    text-align: center;
+    padding: 60px;
+    color: var(--text3);
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 480px) {
+    .product-grid { grid-template-columns: 1fr 1fr; }
+    h1 { font-size: 1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">☕</div>
+        <h1>Kafe <span>Envanter</span></h1>
+      </div>
+      <div class="sync-status">
+        <div class="sync-dot" id="syncDot"></div>
+        <span id="syncText">Bağlanıyor...</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Ürün ara... / Produkt suchen...">
+    </div>
+    <button class="btn btn-primary" onclick="openAddModal()">+ Ürün Ekle</button>
+  </div>
+
+  <div class="stats-bar" id="statsBar"></div>
+
+  <div class="tabs" id="tabBar"></div>
+
+  <div class="product-grid" id="productGrid">
+    <div class="loading">Yükleniyor... ⏳</div>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Yeni Ürün Ekle</h2>
+
+    <div class="form-group">
+      <label>Türkçe Ad</label>
+      <input type="text" id="fNameTR" placeholder="örn: Fındık">
+    </div>
+    <div class="form-group">
+      <label>Deutsch Name</label>
+      <input type="text" id="fNameDE" placeholder="z.B. Haselnuss">
+    </div>
+    <div class="form-group">
+      <label>Kategori / Kategorie</label>
+      <select id="fCategory">
+        <option value="mutfak">🍳 Mutfak / Küche</option>
+        <option value="bar">☕ Bar</option>
+        <option value="icecekler">🥤 İçecekler / Getränke</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Miktar / Menge</label>
+      <input type="number" id="fQty" value="0" min="0">
+    </div>
+    <div class="form-group">
+      <label>Birim / Einheit (opsiyonel)</label>
+      <input type="text" id="fUnit" placeholder="kg, Stk, Fl, Pkg...">
+    </div>
+    <div class="form-group">
+      <label>Fotoğraf / Foto</label>
+      <div class="img-upload-area" id="imgUploadArea">
+        <span id="uploadIcon">📷</span>
+        <span id="uploadText">Fotoğraf ekle</span>
+        <input type="file" accept="image/*" id="imgFileInput" onchange="handleImgUpload(event)">
+        <img id="imgPreview" class="img-preview" style="display:none">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Not / Notiz</label>
+      <textarea id="fNote" rows="2" placeholder="İsteğe bağlı not..."></textarea>
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeModal()">İptal</button>
+      <button class="btn btn-primary" onclick="saveProduct()">Kaydet ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, set, remove, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// ── CONFIG ──────────────────────────────────────────────
+const FIREBASE_URL = "https://kafe-envanter-default-rtdb.europe-west1.firebasedatabase.app";
+// ────────────────────────────────────────────────────────
+
+const app = initializeApp({ databaseURL: FIREBASE_URL });
+const db = getDatabase(app);
+const productsRef = ref(db, 'products');
+
+const CATEGORIES = {
+  mutfak:    { label: 'Mutfak / Küche',        emoji: '🍳' },
+  bar:       { label: 'Bar',                    emoji: '☕' },
+  icecekler: { label: 'İçecekler / Getränke',  emoji: '🥤' },
+};
+
+const DEFAULT_PRODUCTS = [
+  // Mutfak
+  {id:'m01', nameTR:'Un', nameDE:'Mehl', category:'mutfak', qty:0, unit:'kg'},
+  {id:'m02', nameTR:'Şeker', nameDE:'Zucker', category:'mutfak', qty:0, unit:'kg'},
+  {id:'m03', nameTR:'Fındık', nameDE:'Haselnuss', category:'mutfak', qty:0, unit:''},
+  {id:'m04', nameTR:'Bitter Çikolata', nameDE:'Zartbitterschokolade', category:'mutfak', qty:0, unit:''},
+  {id:'m05', nameTR:'Tuz', nameDE:'Salz', category:'mutfak', qty:0, unit:''},
+  {id:'m06', nameTR:'Limon', nameDE:'Zitrone', category:'mutfak', qty:0, unit:'Stk'},
+  {id:'m07', nameTR:'Avokado', nameDE:'Avocado', category:'mutfak', qty:0, unit:'Stk'},
+  {id:'m08', nameTR:'Ekmek', nameDE:'Brot', category:'mutfak', qty:0, unit:''},
+  {id:'m09', nameTR:'Renkli Marul', nameDE:'Bunter Salat (Lollo Rosso/Bionda)', category:'mutfak', qty:0, unit:''},
+  {id:'m10', nameTR:'Yoğurt', nameDE:'Joghurt', category:'mutfak', qty:0, unit:''},
+  {id:'m11', nameTR:'Peynir', nameDE:'Käse', category:'mutfak', qty:0, unit:''},
+  {id:'m12', nameTR:'Pırasa', nameDE:'Lauch / Porree', category:'mutfak', qty:0, unit:''},
+  {id:'m13', nameTR:'Patates', nameDE:'Kartoffeln', category:'mutfak', qty:0, unit:'kg'},
+  {id:'m14', nameTR:'1 Numara Yumurta (Gezgin)', nameDE:'Eier (Haltungsform 1)', category:'mutfak', qty:0, unit:'Stk'},
+  {id:'m15', nameTR:'2 Numara Yumurta (Güneş)', nameDE:'Eier (Haltungsform 2)', category:'mutfak', qty:0, unit:'Stk'},
+  {id:'m16', nameTR:'Krem Frej', nameDE:'Crème Fraîche', category:'mutfak', qty:0, unit:''},
+  {id:'m17', nameTR:'Müsli', nameDE:'Müsli', category:'mutfak', qty:0, unit:''},
+  {id:'m18', nameTR:'Granola', nameDE:'Granola', category:'mutfak', qty:0, unit:''},
+  {id:'m19', nameTR:'Muz', nameDE:'Banane', category:'mutfak', qty:0, unit:'Stk'},
+  {id:'m20', nameTR:'Salam', nameDE:'Salami', category:'mutfak', qty:0, unit:''},
+  {id:'m21', nameTR:'Damla Çikolata', nameDE:'Schokodrops / Schokoröpfchen', category:'mutfak', qty:0, unit:''},
+  // Bar
+  {id:'b01', nameTR:'Kahve', nameDE:'Kaffee', category:'bar', qty:0, unit:'kg'},
+  {id:'b02', nameTR:'Maça Çayı', nameDE:'Matcha', category:'bar', qty:0, unit:''},
+  {id:'b03', nameTR:'Normal Süt', nameDE:'Vollmilch', category:'bar', qty:0, unit:'L'},
+  {id:'b04', nameTR:'Laktozsuz Süt', nameDE:'Laktosefreie Milch', category:'bar', qty:0, unit:'L'},
+  {id:'b05', nameTR:'Yulaf Sütü', nameDE:'Hafermilch', category:'bar', qty:0, unit:'L'},
+  {id:'b06', nameTR:'Küçük To Go Bardak', nameDE:'Kleiner To-Go-Becher', category:'bar', qty:0, unit:'Stk'},
+  {id:'b07', nameTR:'Büyük To Go Bardak', nameDE:'Großer To-Go-Becher', category:'bar', qty:0, unit:'Stk'},
+  {id:'b08', nameTR:'Küçük Kapak', nameDE:'Kleiner Deckel', category:'bar', qty:0, unit:'Stk'},
+  {id:'b09', nameTR:'Büyük Kapak', nameDE:'Großer Deckel', category:'bar', qty:0, unit:'Stk'},
+  {id:'b10', nameTR:'Soğuk İçecek Bardağı Kapağı', nameDE:'Deckel für Ice-To-Go-Becher', category:'bar', qty:0, unit:'Stk'},
+  {id:'b11', nameTR:'Çay', nameDE:'Tee', category:'bar', qty:0, unit:''},
+  {id:'b12', nameTR:'2 Pçete', nameDE:'2-Falt Papierhandtücher', category:'bar', qty:0, unit:'Pkg'},
+  {id:'b13', nameTR:'Servis Peçetesi', nameDE:'Servietten', category:'bar', qty:0, unit:'Pkg'},
+  {id:'b14', nameTR:'Şanti Krema (Sprey)', nameDE:'Sprühsahne', category:'bar', qty:0, unit:''},
+  {id:'b15', nameTR:'Pudra Şekeri', nameDE:'Puderzucker', category:'bar', qty:0, unit:''},
+  {id:'b16', nameTR:'Küpküçük Şarap', nameDE:'Sekt', category:'bar', qty:0, unit:''},
+  {id:'b17', nameTR:'Şarap (ve çeşitleri)', nameDE:'Wein (und Sorten)', category:'bar', qty:0, unit:''},
+  {id:'b18', nameTR:'Aperol', nameDE:'Aperol', category:'bar', qty:0, unit:''},
+  {id:'b19', nameTR:'Lillet', nameDE:'Lillet', category:'bar', qty:0, unit:''},
+  {id:'b20', nameTR:'Portakal', nameDE:'Orange', category:'bar', qty:0, unit:'Stk'},
+  {id:'b21', nameTR:'Paket Pasta Kutu', nameDE:'Kuchen-To-Go-Box', category:'bar', qty:0, unit:'Stk'},
+  // İçecekler
+  {id:'i01', nameTR:'Bira (Çeşitleri)', nameDE:'Bier (Sorten)', category:'icecekler', qty:0, unit:'Fl'},
+  {id:'i02', nameTR:'Sprite', nameDE:'Sprite', category:'icecekler', qty:0, unit:'Fl'},
+  {id:'i03', nameTR:'Normal Kola', nameDE:'Cola (Normal)', category:'icecekler', qty:0, unit:'Fl'},
+  {id:'i04', nameTR:'Kola Zero', nameDE:'Cola Zero', category:'icecekler', qty:0, unit:'Fl'},
+  {id:'i05', nameTR:'Fanta', nameDE:'Fanta', category:'icecekler', qty:0, unit:'Fl'},
+  {id:'i06', nameTR:'Küçük Durgun Su', nameDE:'Kleines Stilles Wasser', category:'icecekler', qty:0, unit:'Fl'},
+  {id:'i07', nameTR:'Büyük Durgun Su', nameDE:'Großes Stilles Wasser', category:'icecekler', qty:0, unit:'Fl'},
+  {id:'i08', nameTR:'Küçük Maden Suyu (Gast)', nameDE:'Kleines Sprudelwasser', category:'icecekler', qty:0, unit:'Fl'},
+  {id:'i09', nameTR:'Büyük Maden Suyu (Gast)', nameDE:'Großes Sprudelwasser', category:'icecekler', qty:0, unit:'Fl'},
+  {id:'i10', nameTR:'Bar İçin Büyük Maden Suyu', nameDE:'Großes Sprudelwasser für die Bar', category:'icecekler', qty:0, unit:'Fl'},
+];
+
+let allProducts = {};
+let currentCategory = 'mutfak';
+let searchQuery = '';
+let editingId = null;
+let pendingImgData = null;
+
+// ── Realtime listener ────────────────────────────────────
+onValue(productsRef, (snap) => {
+  const data = snap.val();
+  if (!data) {
+    // First run: seed default products
+    const initial = {};
+    DEFAULT_PRODUCTS.forEach(p => { initial[p.id] = p; });
+    set(productsRef, initial);
+    return;
+  }
+  allProducts = data;
+  render();
+  document.getElementById('syncDot').style.background = 'var(--ok)';
+  document.getElementById('syncText').textContent = 'Canlı bağlı ✓';
+}, (err) => {
+  document.getElementById('syncDot').style.background = 'var(--danger)';
+  document.getElementById('syncText').textContent = 'Bağlantı hatası';
+});
+
+// ── Render ───────────────────────────────────────────────
+function render() {
+  renderTabs();
+  renderStats();
+  renderGrid();
+}
+
+function renderTabs() {
+  const bar = document.getElementById('tabBar');
+  bar.innerHTML = Object.entries(CATEGORIES).map(([key, cat]) => `
+    <button class="tab ${key === currentCategory ? 'active' : ''}" onclick="setCategory('${key}')">
+      <span class="tab-emoji">${cat.emoji}</span>${cat.label}
+    </button>
+  `).join('');
+}
+
+function renderStats() {
+  const all = Object.values(allProducts);
+  const low = all.filter(p => p.qty <= 2 && p.qty > 0).length;
+  const out = all.filter(p => p.qty === 0).length;
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat"><span class="stat-num">${all.length}</span><span class="stat-label">Toplam ürün</span></div>
+    <div class="stat"><span class="stat-num" style="color:var(--warn)">${low}</span><span class="stat-label">Az stok ⚠️</span></div>
+    <div class="stat"><span class="stat-num" style="color:var(--danger)">${out}</span><span class="stat-label">Tükendi 🔴</span></div>
+  `;
+}
+
+function renderGrid() {
+  const grid = document.getElementById('productGrid');
+  let products = Object.values(allProducts).filter(p => p.category === currentCategory);
+
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    products = Object.values(allProducts).filter(p =>
+      p.nameTR?.toLowerCase().includes(q) || p.nameDE?.toLowerCase().includes(q)
+    );
+  }
+
+  if (!products.length) {
+    grid.innerHTML = `<div class="empty"><div class="empty-icon">📦</div><p>Ürün bulunamadı</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = products.map((p, i) => {
+    const qty = p.qty ?? 0;
+    const statusClass = qty === 0 ? 'status-out' : qty <= 2 ? 'status-low' : '';
+    const badgeClass = qty === 0 ? 'status-out' : qty <= 2 ? 'status-low' : 'status-ok';
+    const badgeLabel = qty === 0 ? '🔴 Tükendi' : qty <= 2 ? '⚠️ Az' : '✓ Yeterli';
+    const imgHtml = p.img
+      ? `<img class="card-img" src="${p.img}" alt="${p.nameTR}" onclick="openEditModal('${p.id}')">`
+      : `<div class="card-img-placeholder" onclick="openEditModal('${p.id}')">📦</div>`;
+    return `
+      <div class="product-card ${statusClass}" style="animation-delay:${i*0.03}s">
+        ${imgHtml}
+        <div class="card-body">
+          <div class="card-names">
+            <div class="card-name-tr">${p.nameTR}</div>
+            <div class="card-name-de">${p.nameDE}</div>
+          </div>
+          <div class="card-controls">
+            <button class="qty-btn" onclick="changeQty('${p.id}', -1)">−</button>
+            <div class="qty-display">${qty} <span class="qty-unit">${p.unit||''}</span></div>
+            <button class="qty-btn" onclick="changeQty('${p.id}', 1)">+</button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span class="status-badge ${badgeClass}">${badgeLabel}</span>
+            <div class="card-actions">
+              <button class="icon-btn" onclick="openEditModal('${p.id}')" title="Düzenle">✏️</button>
+              <button class="icon-btn del" onclick="deleteProduct('${p.id}')" title="Sil">🗑️</button>
+            </div>
+          </div>
+          <div style="margin-top:8px;border-top:1px solid var(--border);padding-top:6px">
+            <textarea class="note-area" placeholder="Not ekle... / Notiz..." onblur="saveNote('${p.id}', this.value)">${p.note||''}</textarea>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── Actions ──────────────────────────────────────────────
+window.setCategory = (cat) => {
+  currentCategory = cat;
+  searchQuery = '';
+  document.getElementById('searchInput').value = '';
+  render();
+};
+
+window.changeQty = (id, delta) => {
+  const p = allProducts[id];
+  const newQty = Math.max(0, (p.qty ?? 0) + delta);
+  update(ref(db, `products/${id}`), { qty: newQty });
+};
+
+window.saveNote = (id, note) => {
+  update(ref(db, `products/${id}`), { note });
+};
+
+window.deleteProduct = (id) => {
+  if (confirm('Bu ürünü silmek istediğinden emin misin?')) {
+    remove(ref(db, `products/${id}`));
+    showToast('Ürün silindi 🗑️');
+  }
+};
+
+// ── Modal ────────────────────────────────────────────────
+window.openAddModal = () => {
+  editingId = null;
+  pendingImgData = null;
+  document.getElementById('modalTitle').textContent = 'Yeni Ürün Ekle';
+  document.getElementById('fNameTR').value = '';
+  document.getElementById('fNameDE').value = '';
+  document.getElementById('fCategory').value = currentCategory;
+  document.getElementById('fQty').value = '0';
+  document.getElementById('fUnit').value = '';
+  document.getElementById('fNote').value = '';
+  resetImgPreview();
+  document.getElementById('modalOverlay').classList.add('open');
+};
+
+window.openEditModal = (id) => {
+  editingId = id;
+  pendingImgData = null;
+  const p = allProducts[id];
+  document.getElementById('modalTitle').textContent = 'Ürünü Düzenle';
+  document.getElementById('fNameTR').value = p.nameTR || '';
+  document.getElementById('fNameDE').value = p.nameDE || '';
+  document.getElementById('fCategory').value = p.category || 'mutfak';
+  document.getElementById('fQty').value = p.qty ?? 0;
+  document.getElementById('fUnit').value = p.unit || '';
+  document.getElementById('fNote').value = p.note || '';
+  if (p.img) {
+    document.getElementById('imgPreview').src = p.img;
+    document.getElementById('imgPreview').style.display = 'block';
+    document.getElementById('uploadIcon').style.display = 'none';
+    document.getElementById('uploadText').style.display = 'none';
+  } else {
+    resetImgPreview();
+  }
+  document.getElementById('modalOverlay').classList.add('open');
+};
+
+window.closeModal = () => {
+  document.getElementById('modalOverlay').classList.remove('open');
+};
+
+window.saveProduct = () => {
+  const nameTR = document.getElementById('fNameTR').value.trim();
+  const nameDE = document.getElementById('fNameDE').value.trim();
+  if (!nameTR) { alert('Türkçe ad gerekli!'); return; }
+
+  const id = editingId || ('p_' + Date.now());
+  const existing = editingId ? allProducts[editingId] : {};
+  const data = {
+    ...existing,
+    id,
+    nameTR,
+    nameDE,
+    category: document.getElementById('fCategory').value,
+    qty: parseInt(document.getElementById('fQty').value) || 0,
+    unit: document.getElementById('fUnit').value.trim(),
+    note: document.getElementById('fNote').value.trim(),
+  };
+  if (pendingImgData) data.img = pendingImgData;
+
+  set(ref(db, `products/${id}`), data);
+  closeModal();
+  showToast(editingId ? 'Ürün güncellendi ✓' : 'Ürün eklendi ✓');
+};
+
+// ── Image upload ─────────────────────────────────────────
+window.handleImgUpload = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    pendingImgData = ev.target.result;
+    document.getElementById('imgPreview').src = pendingImgData;
+    document.getElementById('imgPreview').style.display = 'block';
+    document.getElementById('uploadIcon').style.display = 'none';
+    document.getElementById('uploadText').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+};
+
+function resetImgPreview() {
+  document.getElementById('imgPreview').style.display = 'none';
+  document.getElementById('imgPreview').src = '';
+  document.getElementById('uploadIcon').style.display = 'block';
+  document.getElementById('uploadText').style.display = 'block';
+  document.getElementById('imgFileInput').value = '';
+}
+
+// ── Search ───────────────────────────────────────────────
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  searchQuery = e.target.value.trim();
+  renderGrid();
+});
+
+// ── Toast ────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Close modal on overlay click
+document.getElementById('modalOverlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+});
+</script>
+</body>
+</html>
