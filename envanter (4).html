@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grün Cafe — Envanter</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#7a9e7e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Grün Cafe">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2ec; --surface: #ffffff; --surface2: #f0ede6; --border: #ddd8cc;
+    --accent: #7a9e7e; --accent2: #5c8260; --accent-light: #e8f0e8;
+    --text: #2c2820; --text2: #6b6050; --text3: #a09880;
+    --ok: #5c8260; --warn: #c47f2a; --danger: #c0392b; --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+  body::before { content: ''; position: fixed; inset: 0; background-image: radial-gradient(ellipse at 10% 0%, rgba(122,158,126,0.1) 0%, transparent 50%), radial-gradient(ellipse at 90% 100%, rgba(122,158,126,0.07) 0%, transparent 50%); pointer-events: none; z-index: 0; }
+  .container { max-width: 960px; margin: 0 auto; padding: 0 16px; position: relative; z-index: 1; }
+
+  header { background: white; border-bottom: 1px solid var(--border); margin-bottom: 24px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); }
+  .header-inner { max-width: 960px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; object-position: center; display: block; background: #a8c5b0; box-shadow: none; transform: scale(1.12); }
+  .logo-text h1 { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--text); }
+  .logo-text h1 span { color: var(--accent2); font-style: italic; }
+  .logo-text p { font-size: 0.68rem; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 1px; }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .sync-status { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--text3); }
+  .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .admin-trigger { width: 16px; height: 16px; border-radius: 50%; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .admin-trigger::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--border); transition: background 0.2s; display: block; }
+  .admin-trigger:hover::after { background: var(--text3); }
+  .admin-badge { display: none; align-items: center; gap: 5px; background: var(--accent-light); border: 1px solid rgba(122,158,126,0.4); border-radius: 20px; padding: 3px 10px; font-size: 0.72rem; color: var(--accent2); cursor: pointer; }
+  .admin-badge.visible { display: flex; }
+
+  .toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .search-wrap { flex: 1; min-width: 160px; position: relative; }
+  .search-wrap input { width: 100%; background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px 10px 36px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.875rem; outline: none; transition: border-color 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap input::placeholder { color: var(--text3); }
+  .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 14px; }
+  .btn { padding: 10px 16px; border-radius: var(--radius); border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500; transition: all 0.2s; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .btn-primary { background: var(--accent); color: white; box-shadow: 0 2px 8px rgba(122,158,126,0.35); }
+  .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+  .btn-ghost { background: white; color: var(--text2); border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger { background: rgba(192,57,43,0.08); color: var(--danger); border: 1px solid rgba(192,57,43,0.2); }
+  #addBtn { display: none; }
+  #addBtn.visible { display: flex; }
+  .notice-btn { position: relative; padding-right: 34px; }
+  .notice-dot { position: absolute; top: 6px; right: 6px; width: 18px; height: 18px; border-radius: 50%; background: #d62828; box-shadow: 0 0 0 2px white; display: none; align-items: center; justify-content: center; color: white; font-size: 0.72rem; font-weight: 700; line-height: 1; }
+  .notice-dot.visible { display: flex; }
+  .notice-preview { display: none; margin: 0 0 14px; padding: 10px 12px; border-radius: 12px; background: rgba(214,40,40,0.06); border: 1px solid rgba(214,40,40,0.18); color: #7f1d1d; font-size: 0.84rem; line-height: 1.5; }
+  .notice-preview.visible { display: block; }
+  .notice-meta { color: var(--text3); font-size: 0.74rem; line-height: 1.4; }
+
+  /* TABS - mobil uyumlu */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; background: white; padding: 4px; border-radius: var(--radius); border: 1px solid var(--border); overflow-x: auto; box-shadow: 0 1px 4px rgba(0,0,0,0.05); -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex-shrink: 0; padding: 8px 12px; border-radius: 9px; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 500; color: var(--text3); background: transparent; transition: all 0.2s; white-space: nowrap; text-align: center; }
+  .tab.active { background: var(--accent-light); color: var(--accent2); border: 1px solid rgba(122,158,126,0.25); font-weight: 600; }
+  .tab:hover:not(.active) { background: var(--surface2); color: var(--text2); }
+  /* Diğer sekmesi gizli - sadece adminde görünür */
+  .tab-diger { display: none; }
+  .admin-mode .tab-diger { display: block; }
+
+  .summary-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); gap: 12px; margin-bottom: 16px; align-items: start; }
+  .summary-row.notice-hidden { grid-template-columns: 1fr; }
+  .stats-bar { display: flex; gap: 10px; flex-wrap: wrap; }
+  .stat { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 9px 14px; display: flex; align-items: center; gap: 8px; font-size: 0.78rem; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+  .stat-num { font-size: 1.05rem; font-weight: 600; color: var(--accent2); }
+  .stat-label { color: var(--text3); }
+  .notice-inline { display: none; width: 100%; min-height: 68px; border-radius: 14px; border: 1px solid rgba(214,40,40,0.24); background: linear-gradient(135deg, rgba(214,40,40,0.16), rgba(230,120,138,0.18)); box-shadow: 0 6px 20px rgba(214,40,40,0.08); padding: 12px 14px; align-items: flex-start; gap: 12px; cursor: pointer; }
+  .notice-inline.visible { display: flex; }
+  .notice-inline-icon { width: 28px; height: 28px; border-radius: 50%; background: #d62828; color: white; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700; flex-shrink: 0; box-shadow: 0 6px 14px rgba(214,40,40,0.22); }
+  .notice-inline-body { min-width: 0; }
+  .notice-inline-title { font-size: 0.78rem; font-weight: 700; color: #8f1d2c; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+  .notice-inline-text { color: #7f1d1d; font-size: 0.88rem; line-height: 1.45; word-break: break-word; }
+  .notice-inline-meta { color: rgba(127,29,29,0.7); font-size: 0.72rem; line-height: 1.35; margin-top: 6px; }
+
+  .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; margin-bottom: 40px; }
+  .product-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; animation: fadeUp 0.3s ease both; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .product-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(122,158,126,0.15); }
+  .product-card.status-low { border-color: rgba(196,127,42,0.5); }
+  .product-card.status-out { border-color: rgba(192,57,43,0.4); }
+
+  .card-img { width: 100%; height: 120px; object-fit: cover; display: block; }
+  .card-img-placeholder { width: 100%; height: 120px; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 2.2rem; border-bottom: 1px solid var(--border); }
+  .card-img-placeholder.clickable { cursor: pointer; transition: background 0.2s; }
+  .card-img-placeholder.clickable:hover { background: rgba(122,158,126,0.2); }
+
+  .card-body { padding: 11px 13px; }
+  .card-name-tr { font-family: 'Playfair Display', serif; font-size: 0.95rem; color: var(--text); line-height: 1.3; }
+  .card-name-de { font-size: 0.72rem; color: var(--text3); margin-top: 2px; margin-bottom: 9px; }
+
+  .card-controls { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+  .qty-btn { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
+  .qty-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+  .qty-display { flex: 1; text-align: center; font-size: 1.05rem; font-weight: 600; color: var(--text); }
+  .qty-unit { font-size: 0.68rem; color: var(--text3); font-weight: 400; }
+  .quick-add { display: flex; gap: 8px; margin-bottom: 10px; }
+  .quick-add-input { flex: 1; min-width: 0; border: 1px solid var(--border); border-radius: 9px; background: var(--surface2); padding: 8px 10px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.82rem; outline: none; transition: border-color 0.2s, background 0.2s; }
+  .quick-add-input:focus { border-color: var(--accent); background: white; }
+  .quick-add-btn { padding: 8px 12px; border-radius: 9px; border: 1px solid rgba(122,158,126,0.28); background: var(--accent-light); color: var(--accent2); font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .quick-add-btn:hover { background: rgba(122,158,126,0.2); border-color: var(--accent); }
+
+  .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 0.68rem; font-weight: 500; }
+  .status-ok { background: rgba(92,130,96,0.1); color: var(--ok); }
+  .status-low { background: rgba(196,127,42,0.1); color: var(--warn); }
+  .status-out { background: rgba(192,57,43,0.1); color: var(--danger); }
+
+  /* Admin butonları — sadece admin modda */
+  .admin-only { display: none !important; }
+  .admin-mode .admin-only { display: flex !important; }
+
+  .card-actions { display: flex; gap: 5px; }
+  .icon-btn { width: 27px; height: 27px; border-radius: 7px; border: none; background: transparent; color: var(--text3); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.15s; }
+  .icon-btn:hover { background: var(--surface2); color: var(--accent); }
+  .icon-btn.del:hover { color: var(--danger); background: rgba(192,57,43,0.08); }
+
+  .note-area { width: 100%; background: transparent; border: none; color: var(--text3); font-family: 'DM Sans', sans-serif; font-size: 0.7rem; resize: none; outline: none; height: 30px; line-height: 1.4; }
+  .note-area::placeholder { color: var(--text3); opacity: 0.5; }
+  .card-footer { margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--border); }
+
+  /* MODALS */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(44,40,32,0.5); backdrop-filter: blur(4px); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 16px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: white; border: 1px solid var(--border); border-radius: 18px; padding: 24px; width: 100%; max-width: 420px; transform: scale(0.95); transition: transform 0.2s; box-shadow: 0 20px 60px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
+  .modal-overlay.open .modal { transform: scale(1); }
+  .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.2rem; margin-bottom: 18px; color: var(--accent2); }
+  .form-group { margin-bottom: 12px; }
+  .form-group label { display: block; font-size: 0.7rem; color: var(--text3); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.07em; }
+  .form-group input, .form-group select, .form-group textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 9px; padding: 9px 12px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.875rem; outline: none; transition: border-color 0.2s; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); background: white; }
+  .img-upload-area { width: 100%; height: 90px; border: 2px dashed var(--border); border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 5px; cursor: pointer; transition: border-color 0.2s; font-size: 0.78rem; color: var(--text3); position: relative; overflow: hidden; background: var(--surface2); }
+  .img-upload-area:hover { border-color: var(--accent); color: var(--accent); }
+  .img-upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .img-preview-modal { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+  .modal-btns { display: flex; gap: 10px; margin-top: 18px; }
+  .modal-btns .btn { flex: 1; justify-content: center; }
+
+  .pw-modal { background: white; border: 1px solid var(--border); border-radius: 18px; padding: 28px; width: 100%; max-width: 300px; transform: scale(0.95); transition: transform 0.2s; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+  .modal-overlay.open .pw-modal { transform: scale(1); }
+  .pw-modal .lock-icon { font-size: 2.2rem; margin-bottom: 10px; }
+  .pw-modal h2 { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--text); margin-bottom: 5px; }
+  .pw-modal p { font-size: 0.78rem; color: var(--text3); margin-bottom: 16px; }
+  .pw-modal input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 9px; padding: 10px 14px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.9rem; outline: none; text-align: center; letter-spacing: 0.1em; margin-bottom: 6px; transition: border-color 0.2s; }
+  .pw-modal input:focus { border-color: var(--accent); background: white; }
+  .pw-error { color: var(--danger); font-size: 0.73rem; margin-bottom: 10px; min-height: 16px; }
+  .pw-modal .modal-btns { flex-direction: column; }
+
+  .empty { text-align: center; padding: 50px 20px; color: var(--text3); }
+  .empty-icon { font-size: 2.5rem; margin-bottom: 10px; }
+  .toast { position: fixed; bottom: 20px; right: 20px; background: var(--text); border-radius: 10px; padding: 11px 16px; font-size: 0.83rem; color: white; z-index: 200; transform: translateY(80px); opacity: 0; transition: all 0.3s; pointer-events: none; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .loading { text-align: center; padding: 50px; color: var(--text3); }
+
+  @media (max-width: 500px) {
+    .product-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .tab { padding: 7px 9px; font-size: 0.72rem; }
+  }
+  @media (max-width: 900px) {
+    .summary-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <img id="logoImg" src="" alt="Grün Cafe">
+      <div class="logo-text">
+        <h1>Grün <span>Cafe</span></h1>
+        <p>Envanter Sistemi</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="sync-status">
+        <div class="sync-dot" id="syncDot"></div>
+        <span id="syncText">Bağlanıyor...</span>
+      </div>
+      <div class="admin-badge" id="adminBadge" onclick="logoutAdmin()">👤 Yönetici ✕</div>
+      <button class="admin-trigger" onclick="openPwModal()" title=""></button>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Ürün ara... / Produkt suchen...">
+    </div>
+    <button class="btn btn-ghost notice-btn" id="noticeBtn" onclick="openNoticeModal()">
+      Notlar
+      <span class="notice-dot" id="noticeDot">!</span>
+    </button>
+    <button class="btn btn-primary" id="addBtn" onclick="openAddModal()">+ Ekle</button>
+  </div>
+  <div class="summary-row">
+    <div class="stats-bar" id="statsBar"></div>
+    <div class="notice-inline" id="noticeInline" onclick="openNoticeModal()">
+      <div class="notice-inline-icon">!</div>
+      <div class="notice-inline-body">
+        <div class="notice-inline-title">Yonetici Notu</div>
+        <div class="notice-inline-text" id="noticeInlineText"></div>
+        <div class="notice-inline-meta" id="noticeInlineMeta"></div>
+      </div>
+    </div>
+  </div>
+  <div class="tabs" id="tabBar"></div>
+  <div class="product-grid" id="productGrid"><div class="loading">Yükleniyor... 🌿</div></div>
+</div>
+
+<!-- Ürün Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Yeni Ürün Ekle</h2>
+    <div class="form-group"><label>Türkçe Ad</label><input type="text" id="fNameTR" placeholder="örn: Fındık"></div>
+    <div class="form-group"><label>Deutsch Name</label><input type="text" id="fNameDE" placeholder="z.B. Haselnuss"></div>
+    <div class="form-group">
+      <label>Kategori</label>
+      <select id="fCategory">
+        <option value="mutfak">🍳 Mutfak / Küche</option>
+        <option value="bar">☕ Bar</option>
+        <option value="icecekler">🥤 İçecekler / Getränke</option>
+        <option value="diger">📦 Diğer / Sonstiges</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Miktar / Menge</label><input type="number" id="fQty" value="0" min="0"></div>
+    <div class="form-group"><label>Birim / Einheit</label><input type="text" id="fUnit" placeholder="kg, Stk, Fl, Pkg..."></div>
+    <div class="form-group">
+      <label>Fotoğraf / Foto</label>
+      <div class="img-upload-area">
+        <span id="uploadIcon">📷</span>
+        <span id="uploadText">Fotoğraf ekle</span>
+        <input type="file" accept="image/*" id="imgFileInput" onchange="handleImgUpload(event)">
+        <img id="imgPreview" class="img-preview-modal" style="display:none">
+      </div>
+    </div>
+    <div class="form-group"><label>Not / Notiz</label><textarea id="fNote" rows="2" placeholder="İsteğe bağlı not..."></textarea></div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeModal()">İptal</button>
+      <button class="btn btn-primary" onclick="saveProduct()">Kaydet ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- Şifre Modal -->
+<div class="modal-overlay" id="pwModalOverlay">
+  <div class="pw-modal">
+    <div class="lock-icon">🔐</div>
+    <h2>Yönetici Girişi</h2>
+    <p>Ürün eklemek ve düzenlemek için şifrenizi girin</p>
+    <input type="password" id="pwInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPw()">
+    <div class="pw-error" id="pwError"></div>
+    <div class="modal-btns">
+      <button class="btn btn-primary" onclick="checkPw()">Giriş Yap</button>
+      <button class="btn btn-ghost" onclick="closePwModal()">İptal</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="noticeModalOverlay">
+  <div class="modal">
+    <h2>Yonetici Notu</h2>
+    <div class="notice-preview" id="noticePreview"></div>
+    <div class="form-group admin-only">
+      <label>Sayfaya giren herkese gosterilecek not</label>
+      <textarea id="noticeInput" rows="4" placeholder="Orn: Gelirken buz alinsin"></textarea>
+      <div class="notice-meta">Bu alani sadece admin kullanir.</div>
+    </div>
+    <div class="notice-meta" id="noticeMeta"></div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeNoticeModal()">Kapat</button>
+      <button class="btn btn-danger admin-only" onclick="clearNotice()">Sil</button>
+      <button class="btn btn-primary admin-only" onclick="saveNotice()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, set, remove, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const FIREBASE_URL = "https://kafe-envanter-default-rtdb.europe-west1.firebasedatabase.app";
+const ADMIN_PASSWORD = "sudankaç";
+
+const LOGO_B64 = "data:image/png;base64,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";
+document.getElementById('logoImg').src = LOGO_B64;
+
+const app = initializeApp({ databaseURL: FIREBASE_URL });
+const db = getDatabase(app);
+const productsRef = ref(db, 'products');
+const noticeRef = ref(db, 'adminNotice');
+
+const CATEGORIES = {
+  mutfak:    { label: 'Mutfak / Küche',       emoji: '🍳' },
+  bar:       { label: 'Bar',                   emoji: '☕' },
+  icecekler: { label: 'İçecekler / Getränke', emoji: '🥤' },
+  diger:     { label: 'Diğer / Sonstiges',    emoji: '📦', adminOnly: true },
+};
+
+const DEFAULT_PRODUCTS = [
+  {id:'m01',nameTR:'Un',nameDE:'Mehl',category:'mutfak',qty:0,unit:'kg'},
+  {id:'m02',nameTR:'Şeker',nameDE:'Zucker',category:'mutfak',qty:0,unit:'kg'},
+  {id:'m03',nameTR:'Fındık',nameDE:'Haselnuss',category:'mutfak',qty:0,unit:''},
+  {id:'m04',nameTR:'Bitter Çikolata',nameDE:'Zartbitterschokolade',category:'mutfak',qty:0,unit:''},
+  {id:'m05',nameTR:'Tuz',nameDE:'Salz',category:'mutfak',qty:0,unit:''},
+  {id:'m06',nameTR:'Limon',nameDE:'Zitrone',category:'mutfak',qty:0,unit:'Stk'},
+  {id:'m07',nameTR:'Avokado',nameDE:'Avocado',category:'mutfak',qty:0,unit:'Stk'},
+  {id:'m08',nameTR:'Ekmek',nameDE:'Brot',category:'mutfak',qty:0,unit:''},
+  {id:'m09',nameTR:'Renkli Marul',nameDE:'Bunter Salat (Lollo Rosso/Bionda)',category:'mutfak',qty:0,unit:''},
+  {id:'m10',nameTR:'Yoğurt',nameDE:'Joghurt',category:'mutfak',qty:0,unit:''},
+  {id:'m11',nameTR:'Peynir',nameDE:'Käse',category:'mutfak',qty:0,unit:''},
+  {id:'m12',nameTR:'Pırasa',nameDE:'Lauch / Porree',category:'mutfak',qty:0,unit:''},
+  {id:'m13',nameTR:'Patates',nameDE:'Kartoffeln',category:'mutfak',qty:0,unit:'kg'},
+  {id:'m14',nameTR:'1 Numara Yumurta (Gezgin)',nameDE:'Eier (Haltungsform 1)',category:'mutfak',qty:0,unit:'Stk'},
+  {id:'m15',nameTR:'2 Numara Yumurta (Güneş)',nameDE:'Eier (Haltungsform 2)',category:'mutfak',qty:0,unit:'Stk'},
+  {id:'m16',nameTR:'Krem Frej',nameDE:'Crème Fraîche',category:'mutfak',qty:0,unit:''},
+  {id:'m17',nameTR:'Müsli',nameDE:'Müsli',category:'mutfak',qty:0,unit:''},
+  {id:'m18',nameTR:'Granola',nameDE:'Granola',category:'mutfak',qty:0,unit:''},
+  {id:'m19',nameTR:'Muz',nameDE:'Banane',category:'mutfak',qty:0,unit:'Stk'},
+  {id:'m20',nameTR:'Salam',nameDE:'Salami',category:'mutfak',qty:0,unit:''},
+  {id:'m21',nameTR:'Damla Çikolata',nameDE:'Schokodrops',category:'mutfak',qty:0,unit:''},
+  {id:'b01',nameTR:'Kahve',nameDE:'Kaffee',category:'bar',qty:0,unit:'kg'},
+  {id:'b02',nameTR:'Maça Çayı',nameDE:'Matcha',category:'bar',qty:0,unit:''},
+  {id:'b03',nameTR:'Normal Süt',nameDE:'Vollmilch',category:'bar',qty:0,unit:'L'},
+  {id:'b04',nameTR:'Laktozsuz Süt',nameDE:'Laktosefreie Milch',category:'bar',qty:0,unit:'L'},
+  {id:'b05',nameTR:'Yulaf Sütü',nameDE:'Hafermilch',category:'bar',qty:0,unit:'L'},
+  {id:'b06',nameTR:'Küçük To Go Bardak',nameDE:'Kleiner To-Go-Becher',category:'bar',qty:0,unit:'Stk'},
+  {id:'b07',nameTR:'Büyük To Go Bardak',nameDE:'Großer To-Go-Becher',category:'bar',qty:0,unit:'Stk'},
+  {id:'b08',nameTR:'Küçük Kapak',nameDE:'Kleiner Deckel',category:'bar',qty:0,unit:'Stk'},
+  {id:'b09',nameTR:'Büyük Kapak',nameDE:'Großer Deckel',category:'bar',qty:0,unit:'Stk'},
+  {id:'b10',nameTR:'Soğuk İçecek Bardağı Kapağı',nameDE:'Deckel für Ice-To-Go-Becher',category:'bar',qty:0,unit:'Stk'},
+  {id:'b11',nameTR:'Çay',nameDE:'Tee',category:'bar',qty:0,unit:''},
+  {id:'b12',nameTR:'2 Pçete',nameDE:'2-Falt Papierhandtücher',category:'bar',qty:0,unit:'Pkg'},
+  {id:'b13',nameTR:'Servis Peçetesi',nameDE:'Servietten',category:'bar',qty:0,unit:'Pkg'},
+  {id:'b14',nameTR:'Şanti Krema (Sprey)',nameDE:'Sprühsahne',category:'bar',qty:0,unit:''},
+  {id:'b15',nameTR:'Pudra Şekeri',nameDE:'Puderzucker',category:'bar',qty:0,unit:''},
+  {id:'b16',nameTR:'Küpküçük Şarap',nameDE:'Sekt',category:'bar',qty:0,unit:''},
+  {id:'b17',nameTR:'Şarap (ve çeşitleri)',nameDE:'Wein (und Sorten)',category:'bar',qty:0,unit:''},
+  {id:'b18',nameTR:'Aperol',nameDE:'Aperol',category:'bar',qty:0,unit:''},
+  {id:'b19',nameTR:'Lillet',nameDE:'Lillet',category:'bar',qty:0,unit:''},
+  {id:'b20',nameTR:'Portakal',nameDE:'Orange',category:'bar',qty:0,unit:'Stk'},
+  {id:'b21',nameTR:'Paket Pasta Kutu',nameDE:'Kuchen-To-Go-Box',category:'bar',qty:0,unit:'Stk'},
+  {id:'i01',nameTR:'Bira (Çeşitleri)',nameDE:'Bier (Sorten)',category:'icecekler',qty:0,unit:'Fl'},
+  {id:'i02',nameTR:'Sprite',nameDE:'Sprite',category:'icecekler',qty:0,unit:'Fl'},
+  {id:'i03',nameTR:'Normal Kola',nameDE:'Cola (Normal)',category:'icecekler',qty:0,unit:'Fl'},
+  {id:'i04',nameTR:'Kola Zero',nameDE:'Cola Zero',category:'icecekler',qty:0,unit:'Fl'},
+  {id:'i05',nameTR:'Fanta',nameDE:'Fanta',category:'icecekler',qty:0,unit:'Fl'},
+  {id:'i06',nameTR:'Küçük Durgun Su',nameDE:'Kleines Stilles Wasser',category:'icecekler',qty:0,unit:'Fl'},
+  {id:'i07',nameTR:'Büyük Durgun Su',nameDE:'Großes Stilles Wasser',category:'icecekler',qty:0,unit:'Fl'},
+  {id:'i08',nameTR:'Küçük Maden Suyu (Gast)',nameDE:'Kleines Sprudelwasser',category:'icecekler',qty:0,unit:'Fl'},
+  {id:'i09',nameTR:'Büyük Maden Suyu (Gast)',nameDE:'Großes Sprudelwasser',category:'icecekler',qty:0,unit:'Fl'},
+  {id:'i10',nameTR:'Bar İçin Büyük Maden Suyu',nameDE:'Großes Sprudelwasser für die Bar',category:'icecekler',qty:0,unit:'Fl'},
+];
+
+let allProducts={}, currentCategory='mutfak', searchQuery='', isAdmin=false, editingId=null, pendingImgData=null;
+let adminNotice = { text:'', updatedAt:0 };
+let noticeInitialized = false;
+
+onValue(productsRef, (snap) => {
+  const data = snap.val();
+  if (!data) {
+    const initial={};
+    DEFAULT_PRODUCTS.forEach(p => { initial[p.id]=p; });
+    set(productsRef, initial);
+    return;
+  }
+  allProducts = data;
+  render();
+  document.getElementById('syncDot').style.background='#5c8260';
+  document.getElementById('syncText').textContent='Canlı bağlı ✓';
+}, () => {
+  document.getElementById('syncDot').style.background='#c0392b';
+  document.getElementById('syncText').textContent='Bağlantı hatası';
+});
+
+onValue(noticeRef, (snap) => {
+  const data = snap.val() || {};
+  adminNotice = {
+    text: typeof data.text === 'string' ? data.text : '',
+    updatedAt: Number(data.updatedAt) || 0,
+  };
+  renderNoticeState();
+  if (!noticeInitialized) {
+    noticeInitialized = true;
+    maybeAutoOpenNotice();
+    return;
+  }
+  maybeAutoOpenNotice();
+});
+
+function render() { renderTabs(); renderStats(); renderGrid(); renderNoticeState(); }
+
+function renderTabs() {
+  document.getElementById('tabBar').innerHTML = Object.entries(CATEGORIES).map(([key, cat]) => {
+    const isAdminOnly = cat.adminOnly ? 'tab-diger' : '';
+    return `<button class="tab ${isAdminOnly} ${key===currentCategory?'active':''}" onclick="setCategory('${key}')">${cat.emoji} ${cat.label}</button>`;
+  }).join('');
+}
+
+function renderStats() {
+  const all = Object.values(allProducts).filter(p => !CATEGORIES[p.category]?.adminOnly || isAdmin);
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat"><span class="stat-num">${all.length}</span><span class="stat-label">Toplam ürün</span></div>
+    <div class="stat"><span class="stat-num" style="color:var(--warn)">${all.filter(p=>p.qty<=2&&p.qty>0).length}</span><span class="stat-label">Az stok ⚠️</span></div>
+    <div class="stat"><span class="stat-num" style="color:var(--danger)">${all.filter(p=>p.qty===0).length}</span><span class="stat-label">Tükendi 🔴</span></div>
+  `;
+}
+
+function renderGrid() {
+  const grid = document.getElementById('productGrid');
+
+  // Eğer "diğer" kategorisindeyken admin değilse, mutfak'a dön
+  if (CATEGORIES[currentCategory]?.adminOnly && !isAdmin) {
+    currentCategory = 'mutfak';
+  }
+
+  let products = searchQuery
+    ? Object.values(allProducts).filter(p => {
+        if (CATEGORIES[p.category]?.adminOnly && !isAdmin) return false;
+        const q=searchQuery.toLowerCase();
+        return p.nameTR?.toLowerCase().includes(q)||p.nameDE?.toLowerCase().includes(q);
+      })
+    : Object.values(allProducts).filter(p => p.category===currentCategory);
+
+  if (!products.length) { grid.innerHTML=`<div class="empty"><div class="empty-icon">🌿</div><p>Ürün bulunamadı</p></div>`; return; }
+
+  grid.innerHTML = products.map((p,i) => {
+    const qty=p.qty??0;
+    const sc=qty===0?'status-out':qty<=2?'status-low':'';
+    const bc=qty===0?'status-out':qty<=2?'status-low':'status-ok';
+    const bl=qty===0?'🔴 Tükendi':qty<=2?'⚠️ Az stok':'✓ Yeterli';
+    const imgHtml = p.img
+      ? `<img class="card-img" src="${p.img}" alt="${p.nameTR}" ${isAdmin?`onclick="openEditModal('${p.id}')" style="cursor:pointer"`:''}>` 
+      : `<div class="card-img-placeholder ${isAdmin?'clickable':''}" ${isAdmin?`onclick="openEditModal('${p.id}')"`:''}>🌿</div>`;
+    return `<div class="product-card ${sc}" style="animation-delay:${i*0.03}s">
+      ${imgHtml}
+      <div class="card-body">
+        <div class="card-name-tr">${p.nameTR}</div>
+        <div class="card-name-de">${p.nameDE}</div>
+        <div class="card-controls">
+          <button class="qty-btn" onclick="changeQty('${p.id}',-1)">−</button>
+          <div class="qty-display">${qty} <span class="qty-unit">${p.unit||''}</span></div>
+          <button class="qty-btn" onclick="changeQty('${p.id}',1)">+</button>
+        </div>
+        <div class="quick-add">
+          <input class="quick-add-input" id="quickAdd-${p.id}" type="text" inputmode="numeric" placeholder="${p.unit ? `${p.unit} miktari` : 'Miktar yaz'}" oninput="sanitizeQtyInput(this)" onkeydown="if(event.key==='Enter')applyQuickAdd('${p.id}')">
+          <button class="quick-add-btn" onclick="applyQuickAdd('${p.id}')">Ekle</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span class="status-badge ${bc}">${bl}</span>
+          <div class="card-actions admin-only">
+            <button class="icon-btn" onclick="openEditModal('${p.id}')">✏️</button>
+            <button class="icon-btn del" onclick="deleteProduct('${p.id}')">🗑️</button>
+          </div>
+        </div>
+        <div class="card-footer">
+          <textarea class="note-area" placeholder="Not ekle... / Notiz..." onblur="saveNote('${p.id}',this.value)" ${isAdmin ? '' : 'readonly'}>${p.note||''}</textarea>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  if (isAdmin) document.body.classList.add('admin-mode');
+  else document.body.classList.remove('admin-mode');
+}
+
+function renderNoticeState() {
+  const hasNotice = Boolean(adminNotice.text && adminNotice.text.trim());
+  const seenAt = Number(localStorage.getItem('adminNoticeSeenAt') || 0);
+  const isUnread = hasNotice && adminNotice.updatedAt > seenAt;
+  const dot = document.getElementById('noticeDot');
+  const preview = document.getElementById('noticePreview');
+  const meta = document.getElementById('noticeMeta');
+  const input = document.getElementById('noticeInput');
+  const inline = document.getElementById('noticeInline');
+  const inlineText = document.getElementById('noticeInlineText');
+  const inlineMeta = document.getElementById('noticeInlineMeta');
+  const summaryRow = document.querySelector('.summary-row');
+
+  if (dot) dot.classList.toggle('visible', hasNotice);
+  if (preview) {
+    preview.classList.toggle('visible', hasNotice);
+    preview.textContent = hasNotice ? adminNotice.text : 'Aktif yonetici notu yok.';
+  }
+  if (meta) {
+    meta.textContent = hasNotice && adminNotice.updatedAt
+      ? `Son guncelleme: ${new Date(adminNotice.updatedAt).toLocaleString()}`
+      : 'Su anda yayinlanan bir not yok.';
+  }
+  if (input && isAdmin) {
+    input.value = adminNotice.text || '';
+  }
+  if (dot) {
+    dot.style.opacity = isUnread ? '1' : '0.75';
+  }
+  if (inline) {
+    inline.classList.toggle('visible', hasNotice);
+    if (hasNotice) {
+      inline.setAttribute('title', 'Notu ac');
+    } else {
+      inline.removeAttribute('title');
+    }
+  }
+  if (summaryRow) {
+    summaryRow.classList.toggle('notice-hidden', !hasNotice);
+  }
+  if (inlineText) {
+    inlineText.textContent = hasNotice ? adminNotice.text : '';
+  }
+  if (inlineMeta) {
+    inlineMeta.textContent = hasNotice
+      ? (isUnread ? 'Yeni bildirim var' : 'Bildirim okundu')
+      : '';
+  }
+}
+
+function maybeAutoOpenNotice() {
+  const hasNotice = Boolean(adminNotice.text && adminNotice.text.trim());
+  const seenAt = Number(localStorage.getItem('adminNoticeSeenAt') || 0);
+  if (!hasNotice || adminNotice.updatedAt <= seenAt) return;
+  openNoticeModal(true);
+}
+
+function markNoticeSeen() {
+  if (!adminNotice.updatedAt) return;
+  localStorage.setItem('adminNoticeSeenAt', String(adminNotice.updatedAt));
+  renderNoticeState();
+}
+
+window.setCategory = (cat) => {
+  if (CATEGORIES[cat]?.adminOnly && !isAdmin) return;
+  currentCategory=cat; searchQuery=''; document.getElementById('searchInput').value=''; render();
+};
+window.changeQty = (id, delta) => update(ref(db,`products/${id}`), {qty:Math.max(0,(allProducts[id].qty??0)+delta)});
+window.sanitizeQtyInput = (input) => {
+  input.value = (input.value || '').replace(/\D/g,'');
+};
+window.applyQuickAdd = (id) => {
+  const input = document.getElementById(`quickAdd-${id}`);
+  if (!input) return;
+  const amount = parseInt(input.value, 10);
+  if (!Number.isInteger(amount) || amount <= 0) {
+    input.value = '';
+    return;
+  }
+  changeQty(id, amount);
+  input.value = '';
+};
+window.saveNote = (id, note) => {
+  if (!isAdmin) return;
+  update(ref(db,`products/${id}`), {note});
+};
+window.deleteProduct = (id) => {
+  if (!isAdmin) return;
+  if (confirm('Bu ürünü silmek istediğinden emin misin?')) { remove(ref(db,`products/${id}`)); showToast('Ürün silindi 🗑️'); }
+};
+
+window.openPwModal = () => {
+  if (isAdmin) { logoutAdmin(); return; }
+  document.getElementById('pwInput').value='';
+  document.getElementById('pwError').textContent='';
+  document.getElementById('pwModalOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('pwInput').focus(),200);
+};
+window.closePwModal = () => document.getElementById('pwModalOverlay').classList.remove('open');
+window.checkPw = () => {
+  if (document.getElementById('pwInput').value===ADMIN_PASSWORD) {
+    isAdmin=true; closePwModal();
+    document.getElementById('adminBadge').classList.add('visible');
+    document.getElementById('addBtn').classList.add('visible');
+    document.body.classList.add('admin-mode');
+    renderNoticeState();
+    renderTabs(); renderGrid(); showToast('Yönetici moduna geçildi 👤');
+  } else {
+    document.getElementById('pwError').textContent='❌ Hatalı şifre';
+    document.getElementById('pwInput').value='';
+    document.getElementById('pwInput').focus();
+  }
+};
+window.logoutAdmin = () => {
+  isAdmin=false;
+  if (CATEGORIES[currentCategory]?.adminOnly) currentCategory='mutfak';
+  document.getElementById('adminBadge').classList.remove('visible');
+  document.getElementById('addBtn').classList.remove('visible');
+  document.body.classList.remove('admin-mode');
+  renderNoticeState();
+  renderTabs(); renderGrid(); showToast('Yönetici modundan çıkıldı');
+};
+
+window.openAddModal = () => {
+  if (!isAdmin) return;
+  editingId=null; pendingImgData=null;
+  document.getElementById('modalTitle').textContent='Yeni Ürün Ekle';
+  ['fNameTR','fNameDE','fUnit','fNote'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fCategory').value=currentCategory;
+  document.getElementById('fQty').value='0';
+  resetImgPreview();
+  document.getElementById('modalOverlay').classList.add('open');
+};
+window.openEditModal = (id) => {
+  if (!isAdmin) return;
+  editingId=id; pendingImgData=null;
+  const p=allProducts[id];
+  document.getElementById('modalTitle').textContent='Ürünü Düzenle';
+  document.getElementById('fNameTR').value=p.nameTR||'';
+  document.getElementById('fNameDE').value=p.nameDE||'';
+  document.getElementById('fCategory').value=p.category||'mutfak';
+  document.getElementById('fQty').value=p.qty??0;
+  document.getElementById('fUnit').value=p.unit||'';
+  document.getElementById('fNote').value=p.note||'';
+  if (p.img) { document.getElementById('imgPreview').src=p.img; document.getElementById('imgPreview').style.display='block'; document.getElementById('uploadIcon').style.display='none'; document.getElementById('uploadText').style.display='none'; }
+  else { resetImgPreview(); }
+  document.getElementById('modalOverlay').classList.add('open');
+};
+window.closeModal = () => document.getElementById('modalOverlay').classList.remove('open');
+window.openNoticeModal = (autoOpen = false) => {
+  document.getElementById('noticeModalOverlay').classList.add('open');
+  renderNoticeState();
+  if (autoOpen && !isAdmin) showToast('Yonetici notu var');
+};
+window.closeNoticeModal = () => {
+  document.getElementById('noticeModalOverlay').classList.remove('open');
+  if (!isAdmin) markNoticeSeen();
+};
+window.saveNotice = () => {
+  if (!isAdmin) return;
+  const text = document.getElementById('noticeInput').value.trim();
+  set(noticeRef, { text, updatedAt: Date.now() });
+  closeNoticeModal();
+  showToast(text ? 'Yonetici notu yayinlandi' : 'Not temizlendi');
+};
+window.clearNotice = () => {
+  if (!isAdmin) return;
+  set(noticeRef, { text:'', updatedAt: Date.now() });
+  closeNoticeModal();
+  showToast('Yonetici notu silindi');
+};
+window.saveProduct = () => {
+  if (!isAdmin) return;
+  const nameTR=document.getElementById('fNameTR').value.trim();
+  if (!nameTR) { alert('Türkçe ad gerekli!'); return; }
+  const id=editingId||('p_'+Date.now());
+  const data={...(editingId?allProducts[editingId]:{}), id, nameTR,
+    nameDE:document.getElementById('fNameDE').value.trim(),
+    category:document.getElementById('fCategory').value,
+    qty:parseInt(document.getElementById('fQty').value)||0,
+    unit:document.getElementById('fUnit').value.trim(),
+    note:document.getElementById('fNote').value.trim(),
+  };
+  if (pendingImgData) data.img=pendingImgData;
+  set(ref(db,`products/${id}`), data);
+  closeModal(); showToast(editingId?'Ürün güncellendi ✓':'Ürün eklendi ✓');
+};
+window.handleImgUpload = (e) => {
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=(ev)=>{ pendingImgData=ev.target.result; document.getElementById('imgPreview').src=pendingImgData; document.getElementById('imgPreview').style.display='block'; document.getElementById('uploadIcon').style.display='none'; document.getElementById('uploadText').style.display='none'; };
+  reader.readAsDataURL(file);
+};
+function resetImgPreview() { document.getElementById('imgPreview').style.display='none'; document.getElementById('imgPreview').src=''; document.getElementById('uploadIcon').style.display='block'; document.getElementById('uploadText').style.display='block'; document.getElementById('imgFileInput').value=''; }
+
+document.getElementById('searchInput').addEventListener('input', e=>{ searchQuery=e.target.value.trim(); renderGrid(); });
+document.getElementById('modalOverlay').addEventListener('click', e=>{ if(e.target===document.getElementById('modalOverlay'))closeModal(); });
+document.getElementById('pwModalOverlay').addEventListener('click', e=>{ if(e.target===document.getElementById('pwModalOverlay'))closePwModal(); });
+document.getElementById('noticeModalOverlay').addEventListener('click', e=>{ if(e.target===document.getElementById('noticeModalOverlay'))closeNoticeModal(); });
+
+function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log('SW registered'))
+      .catch(err => console.log('SW error:', err));
+  });
+}
+</script>
+</body>
+</html>
